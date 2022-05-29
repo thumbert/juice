@@ -1,0 +1,2 @@
+print clock();
+print get("kbos_tmin");

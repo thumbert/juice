@@ -1,0 +1,8 @@
+// dart run example/main.dart example/arithmetic.juice
+print 1 + 2/3;
+
+print 1 + 2 * (2 + 5);
+
+var a = 2.5 + 1;
+var b = 3;
+print a + b;
