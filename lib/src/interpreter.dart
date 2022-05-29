@@ -129,9 +129,9 @@ class Interpreter implements ExprVisitor<Object?>, StmtVisitor<void> {
   @override
   void visitVarStmt(Var stmt) {
     Object? value;
-    if (stmt.initializer != null) {
-      value = evaluate(stmt.initializer!);
-    }
+    // if (stmt.initializer != null) {
+    value = evaluate(stmt.initializer);
+    // }
 
     _environment.define(stmt.name.lexeme, value);
   }
