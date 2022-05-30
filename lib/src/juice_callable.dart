@@ -1,17 +1,17 @@
 import 'interpreter.dart';
 
-abstract class LoxCallable {
+abstract class JuiceCallable {
   int get arity;
 
   Object? call(Interpreter interpreter, List<Object?> arguments);
 
-  factory LoxCallable(int arity,
+  factory JuiceCallable(int arity,
       Object? Function(Interpreter interpreter, List<Object?> arguments) fn) {
     return _Callable(arity, fn);
   }
 }
 
-class _Callable implements LoxCallable {
+class _Callable implements JuiceCallable {
   @override
   final int arity;
   final Object? Function(Interpreter interpreter, List<Object?> arguments) fn;

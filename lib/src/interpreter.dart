@@ -1,10 +1,10 @@
 import 'ast.dart';
 import 'environment.dart';
-import 'lox_callable.dart';
-import 'lox_class.dart';
-import 'lox_function.dart';
-import 'lox_instance.dart';
-import 'lox_return.dart';
+import 'juice_callable.dart';
+import 'juice_class.dart';
+import 'juice_function.dart';
+import 'juice_instance.dart';
+import 'juice_return.dart';
 import 'runtime_error.dart';
 import 'token.dart';
 
@@ -16,7 +16,7 @@ class Interpreter implements ExprVisitor<Object?>, StmtVisitor<void> {
   Interpreter() {
     globals.define(
       'clock',
-      LoxCallable(0, (interpreter, arguments) {
+      JuiceCallable(0, (interpreter, arguments) {
         return DateTime.now().millisecondsSinceEpoch / 1000;
       }),
     );
@@ -64,7 +64,7 @@ class Interpreter implements ExprVisitor<Object?>, StmtVisitor<void> {
     Object? superclass;
     if (stmt.superclass != null) {
       superclass = evaluate(stmt.superclass!);
-      if (superclass is! LoxClass) {
+      if (superclass is! JuiceClass) {
         throw RuntimeError(
             stmt.superclass!.name, 'Superclass must be a class.');
       }
@@ -77,14 +77,15 @@ class Interpreter implements ExprVisitor<Object?>, StmtVisitor<void> {
       _environment.define('super', superclass);
     }
 
-    var methods = <String, LoxFunction>{};
+    var methods = <String, JuiceFunction>{};
     for (var method in stmt.methods) {
       var function =
-          LoxFunction(method, _environment, method.name.lexeme == 'init');
+          JuiceFunction(method, _environment, method.name.lexeme == 'init');
       methods[method.name.lexeme] = function;
     }
 
-    var klass = LoxClass(stmt.name.lexeme, superclass as LoxClass?, methods);
+    var klass =
+        JuiceClass(stmt.name.lexeme, superclass as JuiceClass?, methods);
 
     if (superclass != null) {
       _environment = _environment.enclosing!;
@@ -100,7 +101,7 @@ class Interpreter implements ExprVisitor<Object?>, StmtVisitor<void> {
 
   @override
   void visitFunktionStmt(Funktion stmt) {
-    var function = LoxFunction(stmt, _environment, false);
+    var function = JuiceFunction(stmt, _environment, false);
     _environment.define(stmt.name.lexeme, function);
   }
 
@@ -123,7 +124,7 @@ class Interpreter implements ExprVisitor<Object?>, StmtVisitor<void> {
   @override
   void visitReturnStmt(Return stmt) {
     var value = stmt.value != null ? evaluate(stmt.value!) : null;
-    throw LoxReturn(value);
+    throw JuiceReturn(value);
   }
 
   @override
@@ -204,7 +205,7 @@ class Interpreter implements ExprVisitor<Object?>, StmtVisitor<void> {
   @override
   Object? visitCallExpr(Call expr) {
     var callee = evaluate(expr.callee);
-    if (callee is LoxCallable) {
+    if (callee is JuiceCallable) {
       var arguments = <Object?>[];
       for (var argument in expr.arguments) {
         arguments.add(evaluate(argument));
@@ -223,7 +224,7 @@ class Interpreter implements ExprVisitor<Object?>, StmtVisitor<void> {
   @override
   Object? visitGetExpr(Get expr) {
     var object = evaluate(expr.object);
-    if (object is LoxInstance) {
+    if (object is JuiceInstance) {
       return object.get(expr.name);
     }
 
@@ -257,7 +258,7 @@ class Interpreter implements ExprVisitor<Object?>, StmtVisitor<void> {
   Object? visitSetExpr(Set expr) {
     var object = evaluate(expr.object);
 
-    if (object is LoxInstance) {
+    if (object is JuiceInstance) {
       var value = evaluate(expr.value);
       object.set(expr.name, value);
       return value;
@@ -268,10 +269,10 @@ class Interpreter implements ExprVisitor<Object?>, StmtVisitor<void> {
   @override
   Object? visitSuperExpr(Super expr) {
     var distance = locals[expr]!;
-    var superclass = _environment.getAt(distance, 'super') as LoxClass;
+    var superclass = _environment.getAt(distance, 'super') as JuiceClass;
 
     // "this" is always one level nearer than "super"'s environment.
-    var object = _environment.getAt(distance - 1, 'this') as LoxInstance;
+    var object = _environment.getAt(distance - 1, 'this') as JuiceInstance;
 
     var method = superclass.findMethod(expr.method.lexeme);
 

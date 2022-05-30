@@ -1,21 +1,21 @@
 import 'ast.dart';
 import 'environment.dart';
 import 'interpreter.dart';
-import 'lox_callable.dart';
-import 'lox_instance.dart';
-import 'lox_return.dart';
+import 'juice_callable.dart';
+import 'juice_instance.dart';
+import 'juice_return.dart';
 
-class LoxFunction implements LoxCallable {
+class JuiceFunction implements JuiceCallable {
   final Funktion _declaration;
   final Environment _closure;
   final bool _isInitializer;
 
-  LoxFunction(this._declaration, this._closure, this._isInitializer);
+  JuiceFunction(this._declaration, this._closure, this._isInitializer);
 
-  LoxFunction bind(LoxInstance instance) {
+  JuiceFunction bind(JuiceInstance instance) {
     var environment = Environment(_closure);
     environment.define('this', instance);
-    return LoxFunction(_declaration, environment, _isInitializer);
+    return JuiceFunction(_declaration, environment, _isInitializer);
   }
 
   @override
@@ -30,7 +30,7 @@ class LoxFunction implements LoxCallable {
 
     try {
       interpreter.executeBlock(_declaration.body, environment);
-    } on LoxReturn catch (returnValue) {
+    } on JuiceReturn catch (returnValue) {
       if (_isInitializer) return _closure.getAt(0, 'this');
       return returnValue.value;
     }

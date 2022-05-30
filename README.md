@@ -30,11 +30,11 @@ show y; // displays this timeseries to the chart
 Do operations with timeseries.  Get the min and max daily temperature and calculate 
 the daily average.
 ```
-var tMin = get('noaa_kbos_daily_tmax'); 
-var tMax = get('noaa_kbos_daily_tmax');
+var tMin = get("noaa_kbos_daily_tmax"); 
+var tMax = get("noaa_kbos_daily_tmax");
 var tMean = (tMin + tMax)/2;
 print tMean.head();
-show tMean;
+show tMean as "Boston Daily Temperature";
 ```
 
 
@@ -54,7 +54,12 @@ const like = 'sample';
 
 ## Additional information
 
-Custom functions are implemented in the `Interpreter` 
+**Scanner** takes input text and produces tokens.  The **parser** takes the tokens and creates 
+the abstract syntax tree (AST).  There are two components of the AST, expressions and 
+statements.  
+
+Custom functions are implemented in the `Interpreter`
+
 
 ### Credits
 The implementation is based on the book [Crafting interpreters](https://craftinginterpreters.com/) 
