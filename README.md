@@ -19,7 +19,7 @@ A custom interpreter and DSL (domain specific language) for manipulating timeser
 These are all hypothetical -- nothing is working yet.  
 
 Create a timeseries
-```
+```dart
 var x = ts(1);  // value 1 for all timeseries domain
 var y = ts.forBucket(Bucket.5x16, 10); // value 10 for all hours in Bucket 5x16
 var z = ts.forBucket(Bucket.5x16, 10) + ts.forBucket(Bucket.offpeak, 7); // value 10 for peak hours, 7 for offpeak hours
@@ -27,7 +27,7 @@ var z = ts.forBucket(Bucket.5x16, 10) + ts.forBucket(Bucket.offpeak, 7); // valu
 
 
 Get an hourly series, filter it, and aggregate it to calculate the daily mean.
-```
+```dart
 var x = get('nepool_da_lmp_4000');
 print x.timeZoneLocation;  // America/New_York 
 var y = x.filter(hour in Bucket.5x16).toDaily("mean");
@@ -37,7 +37,7 @@ show y; // displays this timeseries to the chart
 
 Do operations with timeseries.  Get the min and max daily temperature and calculate 
 the daily average.
-```
+```dart
 var tMin = get('noaa_kbos_daily_tmax'); 
 var tMax = get('noaa_kbos_daily_tmax');
 var tMean = (tMin + tMax)/2;
