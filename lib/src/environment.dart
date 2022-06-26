@@ -17,6 +17,17 @@ class Environment {
     throw RuntimeError(name, "Undefined variable '${name.lexeme}'.");
   }
 
+  /// Used only for internal debugging -- AAD
+  Object? getName(String name) {
+    if (_values.containsKey(name)) {
+      return _values[name];
+    }
+
+    if (enclosing != null) return enclosing!.getName(name);
+
+    throw ArgumentError("Undefined variable '$name'.");
+  }
+
   void assign(Token name, Object? value) {
     if (_values.containsKey(name.lexeme)) {
       _values[name.lexeme] = value;
@@ -29,6 +40,12 @@ class Environment {
     }
 
     throw RuntimeError(name, "Undefined variable '${name.lexeme}'.");
+  }
+
+  /// backdoor assign
+  void assignName(String name, Object? value) {
+    _values[name] = value;
+    return;
   }
 
   void define(String name, Object? value) {

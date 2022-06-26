@@ -136,7 +136,7 @@ class Parser {
     }
 
     consume(SEMICOLON, "Expect ';' after variable declaration.");
-    return Var(name, initializer);
+    return Var(name, initializer!);
   }
 
   Stmt whileStatement() {

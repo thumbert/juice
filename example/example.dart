@@ -14,7 +14,7 @@ void main(List<String> args) {
 }
 
 void _runFile(String path) {
-  Juice().run(File(path).readAsStringSync());
+  Juice().run(File(path).readAsStringSync().replaceAll('\\n', '\n'));
 }
 
 void _runPrompt() {
@@ -26,6 +26,6 @@ void _runPrompt() {
       stdout.writeln();
       break;
     }
-    juice.run(line);
+    juice.run(line.replaceAll('\\n', '\n'));
   }
 }

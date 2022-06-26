@@ -160,9 +160,9 @@ class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   @override
   void visitVarStmt(Var stmt) {
     declare(stmt.name);
-    if (stmt.initializer != null) {
-      resolveE(stmt.initializer!);
-    }
+    // if (stmt.initializer != null) {
+    resolveE(stmt.initializer);
+    // }
     define(stmt.name);
   }
 

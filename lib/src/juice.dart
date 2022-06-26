@@ -4,7 +4,16 @@ import 'resolver.dart';
 import 'runtime_error.dart';
 import 'scanner.dart';
 
+enum RunMode {
+  debug,
+  production,
+}
+
 class Juice {
+  Juice({this.runMode = RunMode.production});
+
+  RunMode runMode;
+
   final interpreter = Interpreter();
 
   void run(String source) {
@@ -16,7 +25,12 @@ class Juice {
       Resolver(interpreter).resolve(statements);
       interpreter.interpret(statements);
     } on RuntimeError catch (error) {
-      print(error);
+      if (runMode == RunMode.production) {
+        print(error);
+      } else {
+        // this allows for testing errors
+        rethrow;
+      }
     }
   }
 }

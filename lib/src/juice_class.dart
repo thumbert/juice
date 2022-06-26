@@ -1,16 +1,16 @@
 import 'interpreter.dart';
-import 'lox_callable.dart';
-import 'lox_function.dart';
-import 'lox_instance.dart';
+import 'juice_callable.dart';
+import 'juice_function.dart';
+import 'juice_instance.dart';
 
-class LoxClass implements LoxCallable {
+class JuiceClass implements JuiceCallable {
   final String name;
-  final LoxClass? superclass;
-  final Map<String, LoxFunction> _methods;
+  final JuiceClass? superclass;
+  final Map<String, JuiceFunction> _methods;
 
-  LoxClass(this.name, this.superclass, this._methods);
+  JuiceClass(this.name, this.superclass, this._methods);
 
-  LoxFunction? findMethod(String name) {
+  JuiceFunction? findMethod(String name) {
     if (_methods.containsKey(name)) {
       return _methods[name];
     }
@@ -27,7 +27,7 @@ class LoxClass implements LoxCallable {
 
   @override
   Object? call(Interpreter interpreter, List<Object?> arguments) {
-    var instance = LoxInstance(this);
+    var instance = JuiceInstance(this);
     var initializer = findMethod('init');
     initializer?.bind(instance).call(interpreter, arguments);
     return instance;

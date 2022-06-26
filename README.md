@@ -28,6 +28,7 @@ var z = ts.forBucket(Bucket.5x16, 10) + ts.forBucket(Bucket.offpeak, 7); // valu
 
 Get an hourly series, filter it, and aggregate it to calculate the daily mean.
 ```dart
+setDomain("Jan20-Dec21", "America/New_York");
 var x = get('nepool_da_lmp_4000');
 print x.timeZoneLocation;  // America/New_York 
 var y = x.filter(hour in Bucket.5x16).toDaily("mean");
