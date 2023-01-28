@@ -21,6 +21,12 @@ class Interpreter implements ExprVisitor<Object?>, StmtVisitor<void> {
   Interpreter() {
     initializeTimeZones();
     globals.define(
+      'get42',
+      JuiceCallable(0, (interpreter, arguments) {
+        return Future.delayed(Duration(seconds: 5), () => 42);
+      }),
+    );
+    globals.define(
       'clock',
       JuiceCallable(0, (interpreter, arguments) {
         return DateTime.now().millisecondsSinceEpoch / 1000;

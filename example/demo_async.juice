@@ -1,0 +1,5 @@
+// dart run example/example.dart example/demo_async.juice
+var x = get42();
+print x;
+print 1 + 2/3;
+

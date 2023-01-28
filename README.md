@@ -63,7 +63,9 @@ const like = 'sample';
 
 ## Additional information
 
-Custom functions are implemented in the `Interpreter` 
+Custom functions are implemented in the `Interpreter`.  
+
+This is in branch async.
 
 ### Credits
 The implementation is based on the book [Crafting interpreters](https://craftinginterpreters.com/) 
