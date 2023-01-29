@@ -194,6 +194,16 @@ class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   @override
+  void visitCallAsyncExpr(CallAsync expr) {
+    resolveE(expr.callee);
+
+    for (var argument in expr.arguments) {
+      resolveE(argument);
+    }
+  }
+
+
+  @override
   void visitGetExpr(Get expr) {
     resolveE(expr.object);
   }

@@ -16,14 +16,14 @@ class Juice {
 
   final interpreter = Interpreter();
 
-  void run(String source) {
+  Future<void> run(String source) async {
     try {
       var scanner = Scanner(source);
       var tokens = scanner.scanTokens();
       var parser = Parser(tokens);
       var statements = parser.parse();
       Resolver(interpreter).resolve(statements);
-      interpreter.interpret(statements);
+      await interpreter.interpret(statements);
     } on RuntimeError catch (error) {
       if (runMode == RunMode.production) {
         print(error);

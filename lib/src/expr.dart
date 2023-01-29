@@ -4,12 +4,13 @@
 part of ast;
 
 abstract class Expr {
-  R accept<R>(ExprVisitor<R> visitor);
+  FutureOr<R> accept<R>(ExprVisitor<R> visitor);
 }
 
 abstract class ExprVisitor<R> {
   R visitAssignExpr(Assign expr);
   R visitBinaryExpr(Binary expr);
+  FutureOr<R> visitCallAsyncExpr(CallAsync expr);
   R visitCallExpr(Call expr);
   R visitGetExpr(Get expr);
   R visitGroupingExpr(Grouping expr);
@@ -29,7 +30,7 @@ class Assign extends Expr {
   );
 
   @override
-  R accept<R>(ExprVisitor<R> visitor) {
+  FutureOr<R> accept<R>(ExprVisitor<R> visitor) {
     return visitor.visitAssignExpr(this);
   }
 
@@ -45,7 +46,7 @@ class Binary extends Expr {
   );
 
   @override
-  R accept<R>(ExprVisitor<R> visitor) {
+  FutureOr<R> accept<R>(ExprVisitor<R> visitor) {
     return visitor.visitBinaryExpr(this);
   }
 
@@ -62,7 +63,7 @@ class Call extends Expr {
   );
 
   @override
-  R accept<R>(ExprVisitor<R> visitor) {
+  FutureOr<R> accept<R>(ExprVisitor<R> visitor) {
     return visitor.visitCallExpr(this);
   }
 
@@ -71,6 +72,24 @@ class Call extends Expr {
   final List<Expr> arguments;
 }
 
+class CallAsync extends Expr {
+  CallAsync(
+      this.callee,
+      this.paren,
+      this.arguments,
+      );
+
+  @override
+  FutureOr<R> accept<R>(ExprVisitor<R> visitor) async {
+    return await visitor.visitCallAsyncExpr(this);
+  }
+
+  final Expr callee;
+  final Token paren;
+  final List<Expr> arguments;
+}
+
+
 class Get extends Expr {
   Get(
     this.object,
@@ -78,7 +97,7 @@ class Get extends Expr {
   );
 
   @override
-  R accept<R>(ExprVisitor<R> visitor) {
+  FutureOr<R> accept<R>(ExprVisitor<R> visitor) {
     return visitor.visitGetExpr(this);
   }
 
@@ -92,7 +111,7 @@ class Grouping extends Expr {
   );
 
   @override
-  R accept<R>(ExprVisitor<R> visitor) {
+  FutureOr<R> accept<R>(ExprVisitor<R> visitor) {
     return visitor.visitGroupingExpr(this);
   }
 
@@ -105,7 +124,7 @@ class Literal extends Expr {
   );
 
   @override
-  R accept<R>(ExprVisitor<R> visitor) {
+  FutureOr<R> accept<R>(ExprVisitor<R> visitor) {
     return visitor.visitLiteralExpr(this);
   }
 
@@ -120,7 +139,7 @@ class Logical extends Expr {
   );
 
   @override
-  R accept<R>(ExprVisitor<R> visitor) {
+  FutureOr<R> accept<R>(ExprVisitor<R> visitor) {
     return visitor.visitLogicalExpr(this);
   }
 
@@ -137,7 +156,7 @@ class Set extends Expr {
   );
 
   @override
-  R accept<R>(ExprVisitor<R> visitor) {
+  FutureOr<R> accept<R>(ExprVisitor<R> visitor) {
     return visitor.visitSetExpr(this);
   }
 
@@ -153,7 +172,7 @@ class Super extends Expr {
   );
 
   @override
-  R accept<R>(ExprVisitor<R> visitor) {
+  FutureOr<R> accept<R>(ExprVisitor<R> visitor) {
     return visitor.visitSuperExpr(this);
   }
 
@@ -167,7 +186,7 @@ class This extends Expr {
   );
 
   @override
-  R accept<R>(ExprVisitor<R> visitor) {
+  FutureOr<R> accept<R>(ExprVisitor<R> visitor) {
     return visitor.visitThisExpr(this);
   }
 
@@ -181,7 +200,7 @@ class Unary extends Expr {
   );
 
   @override
-  R accept<R>(ExprVisitor<R> visitor) {
+  FutureOr<R> accept<R>(ExprVisitor<R> visitor) {
     return visitor.visitUnaryExpr(this);
   }
 
@@ -195,7 +214,7 @@ class Variable extends Expr {
   );
 
   @override
-  R accept<R>(ExprVisitor<R> visitor) {
+  FutureOr<R> accept<R>(ExprVisitor<R> visitor) {
     return visitor.visitVariableExpr(this);
   }
 

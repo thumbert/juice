@@ -3,6 +3,8 @@
 // Created on 2022-06-26 14:17:44.675974
 library ast;
 
+import 'dart:async';
+
 import 'token.dart';
 
 part 'expr.dart';

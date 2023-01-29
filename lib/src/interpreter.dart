@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:date/date.dart';
+import 'package:juice/src/juice_callable_async.dart';
 import 'package:timezone/data/latest_all.dart';
 import 'package:timezone/timezone.dart';
 import 'ast.dart';
@@ -22,7 +25,7 @@ class Interpreter implements ExprVisitor<Object?>, StmtVisitor<void> {
     initializeTimeZones();
     globals.define(
       'get42',
-      JuiceCallable(0, (interpreter, arguments) {
+      JuiceCallableAsync(0, (interpreter, arguments) {
         return Future.delayed(Duration(seconds: 5), () => 42);
       }),
     );
@@ -49,18 +52,22 @@ class Interpreter implements ExprVisitor<Object?>, StmtVisitor<void> {
     _environment = globals;
   }
 
-  void interpret(List<Stmt> statements) {
+  Future<void> interpret(List<Stmt> statements) async {
+    print('Have to evaluate ${statements.length} statements ...');
     for (var statement in statements) {
-      execute(statement);
+      await execute(statement);
     }
+    print('Done with evaluation.');
   }
 
-  void execute(Stmt stmt) {
+  Future<void> execute(Stmt stmt) async {
     stmt.accept(this);
   }
 
-  Object? evaluate(Expr expr) {
-    return expr.accept(this);
+  FutureOr<Object?> evaluate(Expr expr) async {
+    var aux = await expr.accept(this);
+
+    return aux;
   }
 
   void resolve(Expr expr, int depth) {
@@ -154,12 +161,17 @@ class Interpreter implements ExprVisitor<Object?>, StmtVisitor<void> {
   }
 
   @override
-  void visitVarStmt(Var stmt) {
+  Future<void> visitVarStmt(Var stmt) async {
     Object? value;
     // if (stmt.initializer != null) {
-    value = evaluate(stmt.initializer);
+    // if (stmt.initializer is CallAsync) {
+    //   value = await evaluate(stmt.initializer);
+    // } else {
+    //   value = evaluate(stmt.initializer);
     // }
-
+    // }
+    value = await evaluate(stmt.initializer);
+    print('From interpreter.dart, visitVarStmt, value = $value');
     _environment.define(stmt.name.lexeme, value);
   }
 
@@ -242,10 +254,34 @@ class Interpreter implements ExprVisitor<Object?>, StmtVisitor<void> {
             'Expected ${callee.arity} arguments '
             'but got ${arguments.length}.');
       }
-      return callee.call(this, arguments);
+      var aux = callee.call(this, arguments);
+      return aux;
     }
     throw RuntimeError(expr.paren, 'Can only call functions and classes.');
   }
+
+  @override
+  FutureOr<Object?> visitCallAsyncExpr(CallAsync expr) async {
+    var callee = await evaluate(expr.callee);
+    if (callee is JuiceCallableAsync) {
+      var arguments = <Object?>[];
+      for (var argument in expr.arguments) {
+        arguments.add(evaluate(argument));
+      }
+      if (arguments.length != callee.arity) {
+        throw RuntimeError(
+            expr.paren,
+            'Expected ${callee.arity} arguments '
+            'but got ${arguments.length}.');
+      }
+      var aux = await callee.call(this, arguments);
+      // print(aux);
+      return aux;
+    }
+    throw RuntimeError(expr.paren, 'Can only call functions and classes.');
+  }
+
+
 
   @override
   Object? visitGetExpr(Get expr) {

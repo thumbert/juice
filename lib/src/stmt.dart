@@ -4,7 +4,7 @@
 part of ast;
 
 abstract class Stmt {
-  R accept<R>(StmtVisitor<R> visitor);
+  FutureOr<R> accept<R>(StmtVisitor<R> visitor);
 }
 
 abstract class StmtVisitor<R> {
@@ -15,7 +15,7 @@ abstract class StmtVisitor<R> {
   R visitIfStmt(If stmt);
   R visitPrintStmt(Print stmt);
   R visitReturnStmt(Return stmt);
-  R visitVarStmt(Var stmt);
+  FutureOr<R> visitVarStmt(Var stmt);
   R visitWhileStmt(While stmt);
 }
 
@@ -131,8 +131,8 @@ class Var extends Stmt {
   );
 
   @override
-  R accept<R>(StmtVisitor<R> visitor) {
-    return visitor.visitVarStmt(this);
+  FutureOr<R> accept<R>(StmtVisitor<R> visitor) async {
+    return await visitor.visitVarStmt(this);
   }
 
   final Token name;

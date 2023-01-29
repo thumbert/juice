@@ -317,6 +317,10 @@ class Parser {
 
     var paren = consume(RIGHT_PAREN, "Expect ')' after arguments.");
 
+    /// AAD
+    if ((callee as Variable).name.lexeme == 'get42') {
+      return CallAsync(callee, paren, arguments);
+    }
     return Call(callee, paren, arguments);
   }
 
