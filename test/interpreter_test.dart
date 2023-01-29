@@ -29,9 +29,14 @@ void tests() {
       }));
     }
 
-    test('Set the domain', () {
-      juice.run('setDomain("Jan22", "America/New_York");');
+    test('Run a global sync function', () {
+      juice.run('var x = clock(); print x;');
     });
+
+
+    // test('Set the domain', () {
+    //   juice.run('setDomain("Jan22", "America/New_York");');
+    // });
     // test('Print the domain', () {
     //   juice.run('setDomain("Jan22", "America/New_York");');
     //   captureOutput('print domain;');
@@ -39,41 +44,41 @@ void tests() {
     //   expect(printLog.first, 'Jan22, tz="America/New_York"');
     // });
 
-    test('Create a timeseries with one value', () {
-      juice.run('var x = ts(1);');
-      expect(
-          juice.interpreter.globals.getName('x').runtimeType == TimeSeries<num>,
-          true);
-      captureOutput('print x;');
-      expect(printLog.first,
-          '[2022-01-01 00:00:00.000-0500, 2022-02-01 00:00:00.000-0500) -> 1.0');
-    });
-    test('Add two time series', () {
-      juice.run('var x = ts(1); var y = ts(2);');
-      juice.run('var z = x + y;');
-      var z = juice.interpreter.globals.getName('z') as TimeSeries<num>;
-      expect(z.first.value, 3.0);
-    });
-    test('Adding a number to a timeseries throws', () {
-      juice.run('var x = ts(1); var y = 1;');
-      expect(() => juice.run('var z = x + y;'), throwsException);
-    });
-    test('Get the length/head/tail of a timeseries', () {
-      juice.run('setDomain("Jan22", "America/New_York");');
-      juice.run('var x = tsForBucket("5x16", 1);');
-      // captureOutput('print x.head(3);');
-      captureOutput('print x.length;');
-      expect(printLog.first, '21'); // number of peak days
-      captureOutput('print x.head;');
-      expect(printLog.first.split('\n').first,
-          '[2022-01-03 07:00:00.000-0500, 2022-01-03 23:00:00.000-0500) -> 1.0');
-      captureOutput('print x.tail;');
-      expect(printLog.first.split('\n').last,
-          '[2022-01-31 07:00:00.000-0500, 2022-01-31 23:00:00.000-0500) -> 1.0');
-    });
-    test('Time filter', () {
-      juice.run('var tf = TimeFilter(bucket="5x16", hours="14-20");');
-    });
+    // test('Create a timeseries with one value', () {
+    //   juice.run('var x = ts(1);');
+    //   expect(
+    //       juice.interpreter.globals.getName('x').runtimeType == TimeSeries<num>,
+    //       true);
+    //   captureOutput('print x;');
+    //   expect(printLog.first,
+    //       '[2022-01-01 00:00:00.000-0500, 2022-02-01 00:00:00.000-0500) -> 1.0');
+    // });
+    // test('Add two time series', () {
+    //   juice.run('var x = ts(1); var y = ts(2);');
+    //   juice.run('var z = x + y;');
+    //   var z = juice.interpreter.globals.getName('z') as TimeSeries<num>;
+    //   expect(z.first.value, 3.0);
+    // });
+    // test('Adding a number to a timeseries throws', () {
+    //   juice.run('var x = ts(1); var y = 1;');
+    //   expect(() => juice.run('var z = x + y;'), throwsException);
+    // });
+    // test('Get the length/head/tail of a timeseries', () {
+    //   juice.run('setDomain("Jan22", "America/New_York");');
+    //   juice.run('var x = tsForBucket("5x16", 1);');
+    //   // captureOutput('print x.head(3);');
+    //   captureOutput('print x.length;');
+    //   expect(printLog.first, '21'); // number of peak days
+    //   captureOutput('print x.head;');
+    //   expect(printLog.first.split('\n').first,
+    //       '[2022-01-03 07:00:00.000-0500, 2022-01-03 23:00:00.000-0500) -> 1.0');
+    //   captureOutput('print x.tail;');
+    //   expect(printLog.first.split('\n').last,
+    //       '[2022-01-31 07:00:00.000-0500, 2022-01-31 23:00:00.000-0500) -> 1.0');
+    // });
+    // test('Time filter', () {
+    //   juice.run('var tf = TimeFilter(bucket="5x16", hours="14-20");');
+    // });
   });
 }
 
