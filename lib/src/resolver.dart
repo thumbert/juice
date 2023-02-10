@@ -248,7 +248,7 @@ class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   void visitVariableExpr(Variable expr) {
     if (scopes.isNotEmpty && scopes.last[expr.name.lexeme] == false) {
       throw RuntimeError(
-          expr.name, 'Cannot read local variable in its own initializer.');
+          expr.name, 'Cannot read local variable.dart in its own initializer.');
     }
 
     resolveLocal(expr, expr.name);

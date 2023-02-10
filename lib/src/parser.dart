@@ -128,14 +128,14 @@ class Parser {
   }
 
   Stmt varDeclaration() {
-    var name = consume(IDENTIFIER, 'Expect variable name.');
+    var name = consume(IDENTIFIER, 'Expect variable.dart name.');
 
     Expr? initializer;
     if (match(EQUAL)) {
       initializer = expression();
     }
 
-    consume(SEMICOLON, "Expect ';' after variable declaration.");
+    consume(SEMICOLON, "Expect ';' after variable.dart declaration.");
     return Var(name, initializer!);
   }
 

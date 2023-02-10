@@ -14,7 +14,7 @@ class Environment {
 
     if (enclosing != null) return enclosing!.get(name);
 
-    throw RuntimeError(name, "Undefined variable '${name.lexeme}'.");
+    throw RuntimeError(name, "Undefined variable.dart '${name.lexeme}'.");
   }
 
   /// Used only for internal debugging -- AAD
@@ -25,7 +25,7 @@ class Environment {
 
     if (enclosing != null) return enclosing!.getName(name);
 
-    throw ArgumentError("Undefined variable '$name'.");
+    throw ArgumentError("Undefined variable.dart '$name'.");
   }
 
   void assign(Token name, Object? value) {
@@ -39,7 +39,7 @@ class Environment {
       return;
     }
 
-    throw RuntimeError(name, "Undefined variable '${name.lexeme}'.");
+    throw RuntimeError(name, "Undefined variable.dart '${name.lexeme}'.");
   }
 
   /// backdoor assign
