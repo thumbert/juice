@@ -8,24 +8,24 @@ final constants = {
 };
 
 /// Functions of arity 1.
-final functions1 = <String, FutureOr<num> Function(num)>{
-  'exp': exp,
-  'log': log,
-  'sin': sin,
-  'asin': asin,
-  'cos': cos,
-  'acos': acos,
-  'tan': tan,
-  'atan': atan,
-  'sqrt': sqrt,
+final functions1 = <String, FutureOr<dynamic> Function(dynamic)>{
+  'exp': (x) => exp(x),
+  'log': (x) => log(x),
+  'sin': (x) => sin(x),
+  'asin': (x) => asin(x),
+  'cos': (x) => cos(x),
+  'acos': (x) => acos(x),
+  'tan': (x) => tan(x),
+  'atan': (x) => atan(x),
+  'sqrt': (x) => sqrt(x),
 
   /// custom functions
-  'get': (num x) => x,
-  'aget': (num x) => Future.value(x),
+  'get': (x) => x,
+  'aget': (x) => Future.value(x),
 };
 
 /// Functions of arity 2
-final functions2 = <String, FutureOr<num> Function(num, num)>{
-  'sum2': (num x, num y) => x + y,
+final functions2 = <String, FutureOr<dynamic> Function(dynamic, dynamic)>{
+  'sum2': (x, y) => x + y,
 };
 

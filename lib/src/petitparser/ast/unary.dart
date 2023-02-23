@@ -9,11 +9,10 @@ class Unary extends Expression {
 
   final String name;
   final Expression value;
-  final FutureOr<num> Function(num value) function;
+  final FutureOr<dynamic> Function(dynamic) function;
 
   @override
-  // num eval(Map<String, num> variables) => function(value.eval(variables));
-  Future<num> eval(Map<String, num> variables) async {
+  Future<dynamic> eval(Map<String, dynamic> variables) async {
     var res = function(await value.eval(variables));
     return res;
   }

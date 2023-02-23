@@ -3,4 +3,5 @@
 /// More dartdocs go here.
 library juice;
 
-export 'src/juice.dart';
+export 'src/petitparser/parser.dart';
+export 'src/petitparser/ast.dart';

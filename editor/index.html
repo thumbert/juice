@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs/loader.min.js"
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"
+    ></script>
+
+    <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/marx/4.0.0/marx.min.css"
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"
+    />
+
+    <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/micromodal/0.4.10/micromodal.es.min.js"
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"
+            type="module"
+    ></script>
+
+    <link rel="stylesheet" href="styles.css"/>
+    <link rel="stylesheet" href="micromodal.css"/>
+
+    <title>Juice</title>
+</head>
+<body>
+<div class="main-container">
+
+    <div class="controls">
+        <button id="run">Run (Ctrl/Cmd + Enter)</button>
+        <select class="examples">
+            <option value="">-- Load an Example --</option>
+        </select>
+        <button id="help-button" data-micromodal-trigger="help-modal">
+            What am I looking at?
+        </button>
+    </div>
+
+    <div class="code-container">
+        <div id="code" class="code"></div>
+        <pre id="output" class="output"></pre>
+    </div>
+</div>
+
+<div id="help-modal" class="modal" aria-hidden="true">
+    <div tabindex="-1" class="modal__overlay" data-micromodal-close>
+        <div
+                role="dialog"
+                class="modal__container"
+                aria-modal="true"
+                aria-labelledby="help-modal-title"
+        >
+            <header class="modal__header">
+                <h2 id="help-modal-title" class="modal__title">
+                    <a href="https://github.com/abesto/jlox-rs">jlox-rs (GitHub)</a>
+                </h2>
+                <button
+                        aria-label="Close modal"
+                        class="modal__close"
+                        data-micromodal-close
+                ></button>
+            </header>
+            <div class="modal__content" id="help-modal-content">
+                <p>Juice is a custom language for manipulating and displaying time-series.
+                    It is very experimental at this stage, in the very early exploration stages.
+                </p>
+
+                <h4>Other things</h4>
+                <ul>
+                    <li>
+                        All syntax is subject to change
+                    </li>
+                    <li>
+                        Experimenting with Monaco as an editor for Juice
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--      import init, { run } from "./pkg/jlox_rs_lib.js";-->
+<!--      import examples from "./examples.js";-->
+<script type="module">
+      import tokensProvider from "./juiceTokensProvider.js";
+      import examples from "./examples.js";
+
+      MicroModal.init();
+
+      require.config({
+        paths: {
+          vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.0/min/vs",
+        },
+      });
+
+      require(["vs/editor/editor.main"], () => {
+        monaco.languages.register({ id: "lox" });
+        // Syntax highlighting
+        monaco.languages.setMonarchTokensProvider("lox", tokensProvider);
+        // Indentation and auto-closing
+        monaco.languages.setLanguageConfiguration("lox", {
+          brackets: [
+            ["(", ")"],
+            ["{", "}"],
+          ],
+        });
+
+        const runButton = document.getElementById("run");
+        const output = document.getElementById("output");
+        const selectExample = document.getElementsByClassName("examples")[0];
+
+        const editor = monaco.editor.create(document.getElementById("code"), {
+          value: examples.advanced_classes,
+          language: "lox",
+          additionalCssClassName: "code",
+          // Our error messages number line numbers from zero. Good? Maybe not. But this will help.
+          lineNumbers: (n) => (n - 1).toString(),
+        });
+
+        Object.keys(examples).forEach((name) => {
+          const node = document.createElement("option");
+          node.value = name;
+          node.innerText = name;
+          selectExample.appendChild(node);
+        });
+
+        selectExample.addEventListener("change", () => {
+          editor.setValue(examples[selectExample.value]);
+          selectExample.value = "";
+        });
+
+        init().then(() => {
+          const execute = () => {
+            output.innerText = "(Running...)";
+            output.innerText = run(editor.getValue());
+          };
+
+          runButton.addEventListener("click", execute);
+
+          editor.addCommand(
+            monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter,
+            execute
+          );
+        });
+      });
+</script>
+</body>
+</html>

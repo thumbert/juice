@@ -5,43 +5,75 @@ import 'package:juice/src/petitparser/ast.dart';
 import 'package:juice/src/petitparser/parser.dart';
 import 'package:test/test.dart';
 
+void testCallable() {
+  var env = <String,num>{};
+  
+  group('Callable tests: ', () {
+    test('argument list, 1 numeric', (){
+      var aux = argList.parse('3 ');
+      expect(aux.isSuccess, true);
+      expect(aux.value.length, 1);
+      expect((aux.value[0] as Value).value, 3);
+    });
+
+    test('argument list, 3 numeric', (){
+      var aux = argList.parse('3, 1.2,  5');
+      expect(aux.isSuccess, true);
+      expect(aux.value.length, 3);
+      expect((aux.value[0] as Value).value, 3);
+      expect((aux.value[1] as Value).value, 1.2);
+      expect((aux.value[2] as Value).value, 5);
+    });
+
+    test('argument list with simple expressions', () async {
+      var aux = argList.parse('pi,  pi/6, 2+3');
+      expect(aux.isSuccess, true);
+      expect(aux.value.length, 3);
+      expect((aux.value[0] as Value).value, pi);
+      expect(await (aux.value[1] as Binary).eval(env), pi/6);
+      expect(await (aux.value[2] as Binary).eval(env), 5);
+    });
+
+    test('argument list, variable name', (){
+      var aux = argList.parse('x, y,  z');
+      expect(aux.isSuccess, true);
+      expect(aux.value.length, 3);
+      expect((aux.value[0] as Variable).name, 'x');
+      expect((aux.value[1] as Variable).name, 'y');
+      expect((aux.value[2] as Variable).name, 'z');
+    });
+    
+  });
+}
+
+void testAssignment() {
+  var env = <String,num>{};
+  group('Assignment tests', () {
+    test('x = 2;', () async {
+      await assignment.parse('x = 2;').value.eval(env);
+      expect(env['x'], 2);
+    });
+  });
+}
+
+void testComments() {
+  var env = <String,num>{};
+  group('Comments tests', () {
+    test('x = 2;', () async {
+      await assignment.parse('x = 2;').value.eval(env);
+      expect(env['x'], 2);
+    });
+  });
+}
+
 void main() {
 
   var env = <String,num>{};
 
-  test('argument list, 1 numeric', (){
-    var aux = argList.parse('3 ');
-    expect(aux.isSuccess, true);
-    expect(aux.value.length, 1);
-    expect((aux.value[0] as Value).value, 3);
-  });
+  testCallable();
 
-  test('argument list, 3 numeric', (){
-    var aux = argList.parse('3, 1.2,  5');
-    expect(aux.isSuccess, true);
-    expect(aux.value.length, 3);
-    expect((aux.value[0] as Value).value, 3);
-    expect((aux.value[1] as Value).value, 1.2);
-    expect((aux.value[2] as Value).value, 5);
-  });
-
-  test('argument list with simple expressions', () async {
-    var aux = argList.parse('pi,  pi/6, 2+3');
-    expect(aux.isSuccess, true);
-    expect(aux.value.length, 3);
-    expect((aux.value[0] as Value).value, pi);
-    expect(await (aux.value[1] as Binary).eval(env), pi/6);
-    expect(await (aux.value[2] as Binary).eval(env), 5);
-  });
-
-  test('argument list, variable name', (){
-    var aux = argList.parse('x, y,  z');
-    expect(aux.isSuccess, true);
-    expect(aux.value.length, 3);
-    expect((aux.value[0] as Variable).name, 'x');
-    expect((aux.value[1] as Variable).name, 'y');
-    expect((aux.value[2] as Variable).name, 'z');
-  });
+  testAssignment();
+  
   
   test('simple math', () async {
     expect(await parser.parse('2.2 + 3').value.eval(env), 5.2);

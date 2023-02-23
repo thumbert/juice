@@ -10,10 +10,10 @@ class Variable extends Expression {
   final String name;
 
   @override
-  Future<num> eval(Map<String, num> variables) => variables.containsKey(name)
+  Future<dynamic> eval(Map<String, dynamic> variables) => variables.containsKey(name)
       ? Future.value(variables[name]!)
       : throw 'Unknown variable $name';
 
   @override
-  String toString() => 'Variable{$name}';
+  String toString() => 'Variable $name';
 }

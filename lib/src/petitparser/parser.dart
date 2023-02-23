@@ -1,5 +1,6 @@
 library petitparser.parser;
 
+import 'dart:async';
 import 'dart:math' as math;
 import 'package:petitparser/petitparser.dart';
 import 'ast.dart';
@@ -15,7 +16,7 @@ final number = (digit().plus() &
     .map(_createValue);
 
 final variable = (letter() & word().star())
-    .flatten('variable.dart expected')
+    .flatten('variable name expected')
     .trim()
     .map(_createVariable);
 
@@ -25,16 +26,16 @@ final expression = () {
     ..primitive(number)
     ..primitive(variable)
 
-  /// functions of arity 1
+    /// functions of arity 1
     ..wrapper(
         seq2(
           word().plus().flatten('function expected').trim(),
           char('(').trim(),
         ),
         char(')').trim(),
-            (left, value, right) => _createFunction1(left.first, value))
+        (left, value, right) => _createFunction1(left.first, value))
 
-  /// parentheses just return the value
+    /// parentheses just return the value
     ..wrapper(
         char('(').trim(), char(')').trim(), (left, value, right) => value);
 
@@ -42,9 +43,8 @@ final expression = () {
   builder.group()
     ..prefix(char('+').trim(), (op, a) => a)
     ..prefix(char('-').trim(), (op, a) => Unary('-', a, (x) => -x));
-  builder
-      .group()
-      .right(char('^').trim(), (a, op, b) => Binary('^', a, b, math.pow));
+  builder.group().right(char('^').trim(),
+      (a, op, b) => Binary('^', a, b, (a, b) => math.pow(a, b)));
   builder.group()
     ..left(char('*').trim(), (a, op, b) => Binary('*', a, b, (x, y) => x * y))
     ..left(char('/').trim(), (a, op, b) => Binary('/', a, b, (x, y) => x / y));
@@ -54,20 +54,22 @@ final expression = () {
   return builder.build();
 }();
 
-final argList = (expression & (char(',').trim() & expression).star())
-    .map((values) {
-      return <Expression>[values[0], ...(values[1] as List).map((e) => e[1])];
-    });
-
-// final argList2 = ((number.or(variable)) &
-//         ((char(',').trim() & (number.or(variable))).star()).map((values) {
-//           return values.map((e) => e[1]).toList();
-//         }))
-//     .map((values) => <Expression>[values[0], ...values[1]]);
+final argList =
+    (expression & (char(',').trim() & expression).star()).map((values) {
+  return <Expression>[values[0], ...(values[1] as List).map((e) => e[1])];
+});
 
 final callable = seq4(word().plus().flatten('function expected').trim(),
         char('(').trim(), argList, char(')').trim())
     .map((value) => _createFunctionN(value.first, value.third));
+
+/// Assignment statement, e.g. "x = 2;"
+final assignment =
+    seq4(variable, char('=').trim(), expression, char(';').trim()).map((value) {
+  return Assignment((value.first as Variable).name, value.third);
+});
+
+// final comments = char('/').repeat(3) & any().star() &
 
 final parser = () {
   final builder = ExpressionBuilder<Expression>();
@@ -92,9 +94,8 @@ final parser = () {
   builder.group()
     ..prefix(char('+').trim(), (op, a) => a)
     ..prefix(char('-').trim(), (op, a) => Unary('-', a, (x) => -x));
-  builder
-      .group()
-      .right(char('^').trim(), (a, op, b) => Binary('^', a, b, math.pow));
+  builder.group().right(char('^').trim(),
+      (a, op, b) => Binary('^', a, b, (a, b) => math.pow(a, b)));
   builder.group()
     ..left(char('*').trim(), (a, op, b) => Binary('*', a, b, (x, y) => x * y))
     ..left(char('/').trim(), (a, op, b) => Binary('/', a, b, (x, y) => x / y));

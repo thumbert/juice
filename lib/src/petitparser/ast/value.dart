@@ -8,7 +8,7 @@ class Value extends Expression {
   final num value;
 
   @override
-  Future<num> eval(Map<String, num> variables) => Future.value(value);
+  Future<num> eval(Map<String, dynamic> variables) => Future.value(value);
 
   @override
   String toString() => 'Value{$value}';

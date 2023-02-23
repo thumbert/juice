@@ -52,6 +52,18 @@ show tMean;
 TODO: List prerequisites and provide or point to information on how to
 start using the package.
 
+To start the online editor go into the `editor` folder and launch a local server
+for example with `python3 -m http.server 9000` and then open `localhost:9000`. 
+
+
+
+
+###
+
+Run the command to create a js library from some dart code
+`dart compile js -o editor/out/basic.js bin/basic.dart`
+
+
 ## Usage
 
 TODO: Include short and useful examples for package users. Add longer examples

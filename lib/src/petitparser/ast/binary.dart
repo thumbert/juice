@@ -10,10 +10,10 @@ class Binary extends Expression {
   final String name;
   final Expression left;
   final Expression right;
-  final FutureOr<num> Function(num, num) function;
+  final FutureOr<dynamic> Function(dynamic, dynamic) function;
 
   @override
-  Future<num> eval(Map<String, num> variables) async {
+  Future<dynamic> eval(Map<String, dynamic> variables) async {
     return function(await left.eval(variables), await right.eval(variables));
   }
 
