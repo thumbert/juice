@@ -1,418 +1,48 @@
-import 'ast.dart';
-import 'runtime_error.dart';
-import 'token.dart';
-
-class Parser {
-  final List<Token> _tokens;
-  int _current = 0;
-
-  Parser(this._tokens);
-
-  List<Stmt> parse() {
-    var statements = <Stmt>[];
-    while (!isAtEnd()) {
-      statements.add(declaration());
-    }
-
-    return statements;
-  }
-
-  Expr expression() {
-    return assignment();
-  }
-
-  Stmt declaration() {
-    if (match(CLASS)) return classDeclaration();
-    if (match(FUN)) return function('function');
-    if (match(VAR)) return varDeclaration();
-
-    return statement();
-  }
-
-  Stmt classDeclaration() {
-    var name = consume(IDENTIFIER, 'Expect class name.');
-
-    Variable? superclass;
-    if (match(LESS)) {
-      consume(IDENTIFIER, 'Expect superclass name.');
-      superclass = Variable(previous());
-    }
-
-    consume(LEFT_BRACE, "Expect '{' before class body.");
-
-    var methods = <Funktion>[];
-    while (!check(RIGHT_BRACE) && !isAtEnd()) {
-      methods.add(function('method'));
-    }
-
-    consume(RIGHT_BRACE, "Expect '}' after class body.");
-
-    return Class(name, superclass, methods);
-  }
-
-  Stmt statement() {
-    if (match(FOR)) return forStatement();
-    if (match(IF)) return ifStatement();
-    if (match(PRINT)) return printStatement();
-    if (match(RETURN)) return returnStatement();
-    if (match(WHILE)) return whileStatement();
-    if (match(LEFT_BRACE)) return Block(block());
-
-    return expressionStatement();
-  }
-
-  Stmt forStatement() {
-    consume(LEFT_PAREN, "Expect '(' after 'for'.");
-
-    Stmt? initializer;
-    if (match(SEMICOLON)) {
-      initializer = null;
-    } else if (match(VAR)) {
-      initializer = varDeclaration();
-    } else {
-      initializer = expressionStatement();
-    }
-
-    Expr? condition;
-    if (!check(SEMICOLON)) {
-      condition = expression();
-    }
-    consume(SEMICOLON, "Expect ';' after loop condition.");
-
-    Expr? increment;
-    if (!check(RIGHT_PAREN)) {
-      increment = expression();
-    }
-    consume(RIGHT_PAREN, "Expect ')' after for clauses.");
-    var body = statement();
-
-    if (increment != null) {
-      body = Block([
-        body,
-        Expression(increment),
-      ]);
-    }
-
-    body = While(condition ?? Literal(true), body);
-
-    if (initializer != null) {
-      body = Block([initializer, body]);
-    }
-
-    return body;
-  }
-
-  Stmt ifStatement() {
-    consume(LEFT_PAREN, "Expect '(' after 'if'.");
-    var condition = expression();
-    consume(RIGHT_PAREN, "Expect ')' after if condition.");
-
-    var thenBranch = statement();
-    var elseBranch = match(ELSE) ? statement() : null;
-
-    return If(condition, thenBranch, elseBranch);
-  }
-
-  Stmt printStatement() {
-    var value = expression();
-    consume(SEMICOLON, "Expect ';' after value.");
-    return Print(value);
-  }
-
-  Stmt returnStatement() {
-    var keyword = previous();
-    var value = check(SEMICOLON) ? null : expression();
-
-    consume(SEMICOLON, "Expect ';' after return value.");
-    return Return(keyword, value);
-  }
-
-  Stmt varDeclaration() {
-    var name = consume(IDENTIFIER, 'Expect variable.dart name.');
-
-    Expr? initializer;
-    if (match(EQUAL)) {
-      initializer = expression();
-    }
-
-    consume(SEMICOLON, "Expect ';' after variable.dart declaration.");
-    return Var(name, initializer!);
-  }
-
-  Stmt whileStatement() {
-    consume(LEFT_PAREN, "Expect '(' after 'while'.");
-    var condition = expression();
-    consume(RIGHT_PAREN, "Expect ')' after condition.");
-    var body = statement();
-
-    return While(condition, body);
-  }
-
-  Stmt expressionStatement() {
-    var expr = expression();
-    consume(SEMICOLON, "Expect ';' after expression.");
-    return Expression(expr);
-  }
-
-  Funktion function(String kind) {
-    var name = consume(IDENTIFIER, 'Expect $kind name.');
-    consume(LEFT_PAREN, "Expect '(' after $kind name.");
-    var parameters = <Token>[];
-    if (!check(RIGHT_PAREN)) {
-      do {
-        if (parameters.length >= 255) {
-          throw error(peek(), 'Cannot have more than 255 parameters.');
-        }
-
-        parameters.add(consume(IDENTIFIER, 'Expect parameter name.'));
-      } while (match(COMMA));
-    }
-    consume(RIGHT_PAREN, "Expect ')' after parameters.");
-
-    consume(LEFT_BRACE, "Expect '{' before $kind body.");
-    var body = block();
-    return Funktion(name, parameters, body);
-  }
-
-  List<Stmt> block() {
-    var statements = <Stmt>[];
-
-    while (!check(RIGHT_BRACE) && !isAtEnd()) {
-      statements.add(declaration());
-    }
-
-    consume(RIGHT_BRACE, "Expect '}' after block.");
-    return statements;
-  }
-
-  Expr assignment() {
-    var expr = or();
-
-    if (match(EQUAL)) {
-      var equals = previous();
-      var value = assignment();
-
-      if (expr is Variable) {
-        var name = expr.name;
-        return Assign(name, value);
-      } else if (expr is Get) {
-        return Set(expr.object, expr.name, value);
-      }
-
-      throw error(equals, 'Invalid assignment target.');
-    }
-
-    return expr;
-  }
-
-  Expr or() {
-    var expr = and();
-
-    while (match(OR)) {
-      var operator = previous();
-      var right = and();
-      expr = Logical(expr, operator, right);
-    }
-
-    return expr;
-  }
-
-  Expr and() {
-    var expr = equality();
-
-    while (match(AND)) {
-      var operator = previous();
-      var right = equality();
-      expr = Logical(expr, operator, right);
-    }
-
-    return expr;
-  }
-
-  Expr equality() {
-    var expr = comparison();
-
-    while (match(BANG_EQUAL, EQUAL_EQUAL)) {
-      var operator = previous();
-      var right = comparison();
-      expr = Binary(expr, operator, right);
-    }
-
-    return expr;
-  }
-
-  Expr comparison() {
-    var expr = addition();
-
-    while (match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL)) {
-      var operator = previous();
-      var right = addition();
-      expr = Binary(expr, operator, right);
-    }
-
-    return expr;
-  }
-
-  Expr addition() {
-    var expr = multiplication();
-
-    while (match(MINUS, PLUS)) {
-      var operator = previous();
-      var right = multiplication();
-      expr = Binary(expr, operator, right);
-    }
-
-    return expr;
-  }
-
-  Expr multiplication() {
-    var expr = unary();
-
-    while (match(SLASH, STAR)) {
-      var operator = previous();
-      var right = unary();
-      expr = Binary(expr, operator, right);
-    }
-
-    return expr;
-  }
-
-  Expr unary() {
-    if (match(BANG, MINUS)) {
-      var operator = previous();
-      var right = unary();
-      return Unary(operator, right);
-    }
-
-    return call();
-  }
-
-  Expr call() {
-    var expr = primary();
-
-    while (true) {
-      if (match(LEFT_PAREN)) {
-        expr = finishCall(expr);
-      } else if (match(DOT)) {
-        var name = consume(IDENTIFIER, "Expect property name after '.'.");
-        expr = Get(expr, name);
-      } else {
-        break;
-      }
-    }
-
-    return expr;
-  }
-
-  Expr finishCall(Expr callee) {
-    var arguments = <Expr>[];
-    if (!check(RIGHT_PAREN)) {
-      do {
-        if (arguments.length >= 255) {
-          throw error(peek(), 'Cannot have more than 255 arguments.');
-        }
-        arguments.add(expression());
-      } while (match(COMMA));
-    }
-
-    var paren = consume(RIGHT_PAREN, "Expect ')' after arguments.");
-
-    return Call(callee, paren, arguments);
-  }
-
-  Expr primary() {
-    if (match(FALSE)) return Literal(false);
-    if (match(TRUE)) return Literal(true);
-    if (match(NIL)) return Literal(null);
-
-    if (match(NUMBER, STRING)) {
-      return Literal(previous().literal);
-    }
-
-    if (match(SUPER)) {
-      var keyword = previous();
-      consume(DOT, "Expect '.' after 'super'.");
-      var method = consume(IDENTIFIER, 'Expect superclass method name.');
-      return Super(keyword, method);
-    }
-
-    if (match(THIS)) return This(previous());
-
-    if (match(IDENTIFIER)) {
-      return Variable(previous());
-    }
-
-    if (match(LEFT_PAREN)) {
-      var expr = expression();
-      consume(RIGHT_PAREN, "Expect ')' after expression.");
-      return Grouping(expr);
-    }
-
-    throw error(peek(), 'Expect expression.');
-  }
-
-  bool match([TokenType? t1, TokenType? t2, TokenType? t3, TokenType? t4]) {
-    for (var type in [t1, t2, t3, t4].whereType<TokenType>()) {
-      if (check(type)) {
-        advance();
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  Token consume(TokenType type, String message) {
-    if (check(type)) return advance();
-
-    throw error(peek(), message);
-  }
-
-  bool check(TokenType type) {
-    if (isAtEnd()) return false;
-    return peek().type == type;
-  }
-
-  Token advance() {
-    if (!isAtEnd()) _current++;
-    return previous();
-  }
-
-  bool isAtEnd() {
-    return peek().type == EOF;
-  }
-
-  Token peek() {
-    return _tokens[_current];
-  }
-
-  Token previous() {
-    return _tokens[_current - 1];
-  }
-
-  Exception error(Token token, String message) {
-    return RuntimeError(token, message);
-  }
-
-  void synchronize() {
-    advance();
-
-    while (!isAtEnd()) {
-      if (previous().type == SEMICOLON) return;
-
-      switch (peek().type) {
-        case CLASS:
-        case FUN:
-        case VAR:
-        case FOR:
-        case IF:
-        case WHILE:
-        case PRINT:
-        case RETURN:
-          return;
-        default:
-          advance();
-      }
-    }
-  }
-}
+library src.parser.dart;
+
+import 'dart:math' as math;
+
+import 'package:juice/src/expressions/binary.dart';
+import 'package:juice/src/expressions/callable.dart';
+import 'package:juice/src/expressions/comment.dart';
+import 'package:juice/src/expressions/expression.dart';
+import 'package:juice/src/expressions/unary.dart';
+import 'package:juice/src/expressions/value.dart';
+import 'package:juice/src/expressions/variable.dart';
+import 'package:petitparser/petitparser.dart';
+
+final parser = () {
+  final builder = ExpressionBuilder<Expression>();
+  builder
+    ..primitive(comment1)
+    ..primitive(number)
+    // ..primitive(hourlyScheduleFun)
+    // ..primitive(maFun)
+    ..primitive(callable)
+    ..primitive(variable);
+
+  /// parentheses just return the value
+  builder.group().wrapper(
+      char('(').trim(), char(')').trim(), (left, value, right) => value);
+
+  /// Simple math ops
+  builder.group()
+    ..prefix(char('+').trim(), (op, a) => a)
+    ..prefix(char('-').trim(), (op, a) => UnaryNegation(a));
+  builder.group().right(char('^').trim(),
+          (a, op, b) => Binary('^', a, b, (a, b) => math.pow(a, b)));
+  builder.group()
+    ..left(char('*').trim(), (a, op, b) => BinaryMultiply(a, b))
+    ..left(char('/').trim(), (a, op, b) => BinaryDivide(a, b));
+  builder.group()
+    ..left(char('+').trim(), (a, op, b) => BinaryAdd(a, b))
+    ..left(string('.+').trim(), (a, op, b) => BinaryDotAddition(a, b))
+    ..left(char('-').trim(), (a, op, b) => BinarySubtract(a, b));
+  builder.group()
+    ..left(char('>').trim(), (a, op, b) => BinaryGreaterThan(a, b))
+    ..left(string('>=').trim(), (a, op, b) => BinaryGreaterThanEqual(a, b))
+    ..left(char('<').trim(), (a, op, b) => BinaryLessThan(a, b))
+    ..left(string('<=').trim(), (a, op, b) => BinaryLessThanEqual(a, b));
+
+  return builder.build().end();
+}();
